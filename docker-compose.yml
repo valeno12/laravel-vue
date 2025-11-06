@@ -29,19 +29,19 @@ services:
       - laravel
 
   db:
-    image: mysql:8.0
+    image: postgres:16
     container_name: firstproyect_db
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: firstproyect
-      MYSQL_USER: firstproyect
-      MYSQL_PASSWORD: firstproyect
+      POSTGRES_DB: laravel
+      POSTGRES_USER: laravel
+      POSTGRES_PASSWORD: laravel
     ports:
-      - "3307:3306"    # MySQL accesible en 3307 desde tu máquina
+      - "5433:5432"
     volumes:
-      - db-data:/var/lib/mysql
+      - db-data:/var/lib/postgresql/data
     networks:
       - laravel
+
 
 volumes:
   db-data:
