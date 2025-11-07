@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     libzip-dev \
+    libpq-dev \
     && docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip \
     && rm -rf /var/lib/apt/lists/*
 
