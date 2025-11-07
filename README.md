@@ -191,6 +191,8 @@ composer run dev
 Y listo ✅  
 Tu entorno queda igual que el día anterior, con todas las dependencias ya instaladas.
 
+En caso de tener problemas a la hora de guardar (pide permisos sudo) se puede ejecutar este comando:
+```sudo chown -R $USER:$USER /ruta/a/tu/proyecto```
 ---
 
 ## 🧩 Cuándo volver a hacer `docker compose up -d --build`
