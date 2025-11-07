@@ -4,6 +4,8 @@ services:
   app:
     build:
       context: ./docker/php
+      target: development
+
     container_name: "${APP_NAME}_app"
     volumes:
       - ./:/var/www/html
