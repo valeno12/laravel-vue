@@ -282,3 +282,116 @@ Eso borra los datos de la base y reconstruye el entorno completo.
 Con este flujo tenés un entorno **profesional, portable y reproducible**, idéntico a producción,  
 pero con la comodidad de desarrollo local.  
 Tu máquina solo necesita **Docker + Git — nada más.**
+
+
+# Flujo de Producción - Laravel 12 + Vue + Docker + PostgreSQL
+
+Esta sección describe cómo desplegar tu proyecto en un entorno de **producción**, usando la misma plantilla de desarrollo pero con configuración optimizada para VPS.
+
+---
+
+## Requisitos previos en el VPS
+
+* Docker
+* Docker Compose
+* Acceso SSH al servidor
+* Dominio o IP pública (para APP_URL y Nginx)
+
+> No hace falta instalar PHP, Node ni PostgreSQL en el VPS; todo corre en contenedores.
+
+---
+
+## Flujo paso a paso para producción
+
+### 1️⃣ Clonar el proyecto en el VPS
+
+```bash
+git clone https://github.com/TU_USUARIO/mi-nueva-app.git
+cd mi-nueva-app
+```
+
+### 2️⃣ Crear el archivo de entorno
+
+```bash
+cp .env.example .env
+```
+
+Editar `.env` con los valores de **producción**:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://midominio.com
+APP_KEY=
+
+DB_CONNECTION=pgsql
+DB_HOST=db
+DB_PORT=5432
+DB_DATABASE=laravel
+DB_USERNAME=laravel
+DB_PASSWORD=clave_segura
+```
+
+> Ajustar otros secretos según Redis, AWS, mail, etc.
+
+### 3️⃣ Levantar contenedores en modo producción
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+
+Verificar que estén corriendo:
+
+```bash
+docker compose -f docker-compose.prod.yml ps
+```
+
+### 4️⃣ Instalar dependencias y preparar la app
+
+Entrar al contenedor `app`:
+
+```bash
+docker compose -f docker-compose.prod.yml exec app bash
+```
+
+Dentro del contenedor:
+
+```bash
+composer install --optimize-autoloader --no-dev
+npm ci
+npm run build
+php artisan key:generate --no-interaction
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+> ⚠️ `--force` es necesario para migraciones en producción.
+
+### 5️⃣ Verificar la app en el navegador
+
+* App Laravel: `https://midominio.com`
+* Logs: `docker compose -f docker-compose.prod.yml exec app tail -f storage/logs/laravel.log`
+
+---
+
+## Gestión de contenedores en producción
+
+| Acción              | Comando                                                   | Descripción                                    |
+| ------------------- | --------------------------------------------------------- | ---------------------------------------------- |
+| Ver estado          | `docker compose -f docker-compose.prod.yml ps`            | Muestra contenedores y puertos activos         |
+| Reiniciar servicios | `docker compose -f docker-compose.prod.yml restart`       | Reinicia contenedores sin rebuild              |
+| Detener todo        | `docker compose -f docker-compose.prod.yml down`          | Apaga contenedores pero mantiene volumen de DB |
+| Borrar todo         | `docker compose -f docker-compose.prod.yml down -v`       | Elimina contenedores y volúmenes               |
+| Acceder a consola   | `docker compose -f docker-compose.prod.yml exec app bash` | Entrar al contenedor app                       |
+
+---
+
+## Nota
+
+* Se mantiene el flujo de desarrollo `cp .env.example .env`; solo cambian los valores.
+* Los contenedores de producción **no montan el código como volumen**, se trabaja sobre la copia incluida en la imagen.
+* Las dependencias y compilaciones frontend se hacen **una sola vez** durante el build y la instalación dentro del contenedor.
+
+Con esto, tu proyecto queda listo para producción en un VPS usando la misma plantilla que usás para desarrollo.

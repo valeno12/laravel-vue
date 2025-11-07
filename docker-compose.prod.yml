@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./docker/php
+      target: production
+    container_name: "${APP_NAME}_app"
+    environment:
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      LOG_CHANNEL: stack
+    networks:
+      - laravel
+    restart: always
+
+  web:
+    image: nginx:latest
+    container_name: "${APP_NAME}_nginx"
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - laravel
+    restart: always
+
+  db:
+    image: postgres:16
+    container_name: "${APP_NAME}_db"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data_volume:/var/lib/postgresql/data
+    networks:
+      - laravel
+    restart: always
+
+volumes:
+  db_data_volume:
+
+networks:
+  laravel:
+    driver: bridge
